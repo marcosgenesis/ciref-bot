@@ -1,25 +1,31 @@
 import { extendTheme } from '@chakra-ui/react';
+import { colors } from '@twooni-ui/tokens';
 export const theme = extendTheme({
   styles: {
     global: {
       'html, body': {
-        backgroundColor: 'gray.50',
+        backgroundColor: colors.gray900,
       },
     },
   },
+  config: {
+    initialColorMode: 'light',
+    useSystemColorMode: false,
+  },
   colors: {
-    gray: {
-      900: '#101724',
-      800: '#192431',
-      700: '#2C3849',
-      600: '#3D4A5B',
-      500: '#5A6579',
-      400: '#8C98A9',
-      300: '#C8CFD8',
-      200: '#DFE4E9',
-      100: '#F0F2F6',
-      50: '#FCFDFC',
-    },
+    // gray: {
+    //   25: colors.gray25,
+    //   50: colors.gray50,
+    //   100: colors.gray100,
+    //   200: colors.gray200,
+    //   300: colors.gray300,
+    //   400: colors.gray400,
+    //   500: colors.gray500,
+    //   600: colors.gray600,
+    //   700: colors.gray700,
+    //   800: colors.gray800,
+    //   900: colors.gray900,
+    // },
     green: {
       900: '#00452D',
       800: '#005534',
