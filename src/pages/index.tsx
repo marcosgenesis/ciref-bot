@@ -1,33 +1,28 @@
-import {
-  RiGithubFill,
-  RiGithubLine,
-  RiGitPullRequestFill,
-  RiGitPullRequestLine,
-  RiLogoutBoxFill,
-  RiLogoutBoxLine,
-} from 'react-icons/ri';
-const ApexCharts = dynamic(() => import('react-apexcharts'), { ssr: false });
 import React, { useEffect, useState } from 'react';
-import { getSession, signIn, signOut, useSession } from 'next-auth/react';
-import { api, apiGithub, backendApi } from '@/services/api';
-import RefactItem from '@/components/RefactItem';
+import { getSession, useSession } from 'next-auth/react';
+import { backendApi } from '@/services/api';
 import {
   Box,
   Button,
+  ButtonGroup,
+  Divider,
+  Flex,
+  HStack,
   Spacer,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { colors } from '@twooni-ui/tokens';
 import FirstAccess from '@/components/FirstAccess';
-import RefactContainer from '@/components/RefactContainer';
 import { useSelectRepo } from '@/stores/repo';
-import dynamic from 'next/dynamic';
+import Profile from '@/components/navbar/Profile';
+import Image from 'next/image';
+import RepoItem from '@/components/navbar/RepoItem';
+import Duel from '@/components/Duel';
+import RefactByAuthors from '@/components/RefactsByAuthors';
+import TimeWindows from '@/components/TimeWindows';
+import { useTimeWindow } from '@/stores/timeWindow';
+import RefactsByTime from '@/components/RefactsByTime';
+import RefactsByType from '@/components/RefactsByType';
 export async function getServerSideProps(context) {
   const session = await getSession(context);
 
@@ -50,7 +45,18 @@ export async function getServerSideProps(context) {
 const Home: React.FC = () => {
   const { data: session } = useSession();
   const [firstAccess, setFirstAccess] = useState(false);
-  const selectedRepo = useSelectRepo((state) => state.selectedRepo);
+  const [startDate, endDate] = useTimeWindow((state) => [
+    state.startDate,
+    state.endDate,
+  ]);
+  const { selectedRepo, setSelectedRepo, setRepos, repos } = useSelectRepo(
+    ({ selectedRepo, setSelectedRepo, setRepos, repos }) => ({
+      selectedRepo,
+      repos,
+      setSelectedRepo,
+      setRepos,
+    })
+  );
   const [refactsTypes, setRefactsTypes] = useState(false);
 
   useEffect(() => {
@@ -59,6 +65,17 @@ const Home: React.FC = () => {
         .get(`/user/${session?.user.username}`)
         .then((a) => setFirstAccess(a.data.firstAccess));
     }
+  }, []);
+
+  useEffect(() => {
+    backendApi
+      .get(`/repo/${session?.user.username}`, {
+        params: { startDate, endDate },
+      })
+      .then((response) => {
+        setRepos(response.data);
+        if (!selectedRepo) setSelectedRepo(response.data[0]?.repoName);
+      });
   }, []);
 
   useEffect(() => {
@@ -75,82 +92,69 @@ const Home: React.FC = () => {
       width="100%"
       height="100vh"
       display="flex"
-      justifyContent="center"
-      alignItems="center"
     >
       <Box
-        width="70"
+        bg="white"
+        width="300px"
         maxWidth="300px"
-        height="80%"
+        height="100vh"
         display="flex"
         flexDirection="column"
         alignItems="center"
         outline="1px solid"
-        outlineColor="gray.700"
-        // borderRadius="md"
+        outlineColor="gray.300"
       >
-        <Box as="img" src={session?.user.avatar} width="100%" />
-        <Text fontSize="lg" fontWeight="medium">
-          {session?.user.name}
-        </Text>
-        <Text color="gray.400">@{session?.user.username}</Text>
-        <VStack w="100%" height="100%" mt="2" padding="2">
-          <ApexCharts
-            type="donut"
-            options={{
-              chart: {
-                type: 'donut',
-                width: '300px',
-                height: '300px',
-              },
-              dataLabels: {
-                enabled: true,
-                formatter(val, opts?) {
-                  return val
-                },
-              },
-              plotOptions: {
-                pie: {
-                  donut: {
-                    size: '50%',
-                    labels: {
-                      total: {
-                        showAlways: true,
-                        label: 'Qtd total',
-                        color: '#fff' 
-                      },
-                    },
-                  },
-                },
-              },
-              legend: { show: false },
-              labels: Object.keys(refactsTypes),
-            }}
-            series={Object.values(refactsTypes)}
-          />
-          <Spacer />
-          <Button
-            width="100%"
-            variant="outline"
-            onClick={() => signOut()}
-            leftIcon={<RiLogoutBoxLine size={16} />}
+        <Flex flexDir="column" p="4" w="100%">
+          <Image src="/assets/logo.svg" width={80} height={80} />
+        </Flex>
+        <Divider />
+
+        <VStack w="100%">
+          <Flex
+            w="100%"
+            p="4"
+            alignItems="center"
+            justifyContent="space-between"
           >
-            Sair
-          </Button>
+            <Text fontSize="2xl" fontWeight="medium">
+              Repositórios
+            </Text>
+            <Flex
+              bg="primary.50"
+              color="primary.500"
+              w="8"
+              h="8"
+              borderRadius="xl"
+              justifyContent="center"
+              alignItems="center"
+            >
+              {repos.length}
+            </Flex>
+          </Flex>
+          {repos.map((item) => (
+            <RepoItem repoName={item.repoName} />
+          ))}
         </VStack>
+        <Spacer />
+        <Profile />
       </Box>
-      <Box
-        width="70%"
-        height="80%"
-        outline="1px solid"
-        outlineColor={colors.gray700}
-      >
-        {!firstAccess ? (
-          <FirstAccess setFirstAccess={setFirstAccess} />
+      <Flex p="8">
+        {repos.length ? (
+          <VStack spacing={4} w="100%">
+            <TimeWindows />
+            <HStack spacing={4} w="100%" align={'stretch'}>
+              <RefactByAuthors />
+              <RefactsByTime />
+            </HStack>
+            <Flex gap={4} w="100%">
+              <RefactsByType />
+              <Duel />
+            </Flex>
+          </VStack>
         ) : (
-          <RefactContainer />
+          <FirstAccess setFirstAccess={setFirstAccess} />
         )}
-      </Box>
+      </Flex>
     </Box>
   );
 };

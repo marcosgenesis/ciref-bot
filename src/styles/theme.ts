@@ -4,7 +4,9 @@ export const theme = extendTheme({
   styles: {
     global: {
       'html, body': {
-        backgroundColor: colors.gray900,
+        backgroundColor: colors.gray100,
+        fontFamily: "'Outfit', sans-serif"
+
       },
     },
   },
@@ -13,19 +15,23 @@ export const theme = extendTheme({
     useSystemColorMode: false,
   },
   colors: {
-    // gray: {
-    //   25: colors.gray25,
-    //   50: colors.gray50,
-    //   100: colors.gray100,
-    //   200: colors.gray200,
-    //   300: colors.gray300,
-    //   400: colors.gray400,
-    //   500: colors.gray500,
-    //   600: colors.gray600,
-    //   700: colors.gray700,
-    //   800: colors.gray800,
-    //   900: colors.gray900,
-    // },
+    primary:{
+      50:'#e6e1fd',
+      500:'#6E51F2'
+    }, 
+    gray: {
+      25: colors.gray25,
+      50: colors.gray50,
+      100: colors.gray100,
+      200: colors.gray200,
+      300: colors.gray300,
+      400: colors.gray400,
+      500: colors.gray500,
+      600: colors.gray600,
+      700: colors.gray700,
+      800: colors.gray800,
+      900: colors.gray900,
+    },
     green: {
       900: '#00452D',
       800: '#005534',

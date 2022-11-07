@@ -53,7 +53,7 @@ const RefactContainer: React.FC<> = () => {
         }}
       >
         {repos.map((repo) => (
-          <option value={repo.repoUrl}>{repo.repoUrl}</option>
+          <option value={repo.repoUrl}>{repo.repoName}</option>
         ))}
       </Select>
       <VStack p="4">
