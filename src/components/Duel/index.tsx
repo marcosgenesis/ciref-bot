@@ -14,12 +14,26 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
 import { RiUser2Line, RiUserLine } from 'react-icons/ri';
 import DuelPersonItem from './DuelPersonItem';
+const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-// import { Container } from './styles';
-
+const categories= [
+  'add',
+  'remove',
+  'move',
+  'rename',
+  'change',
+  'extract',
+  'split',
+  'merge',
+  'replace',
+  'modify',
+  'inline',
+  'others',
+]
 const Duel: React.FC = () => {
   const [duelData, setDuelData] = useState([]);
   const { challenged, challenger } = useDuelStore(
@@ -57,7 +71,16 @@ const Duel: React.FC = () => {
           startDate,
           endDate,
         })
-        .then((response) => setDuelData(Object.entries(response.data)));
+        .then((response) =>
+          setDuelData(
+            response.data.map((user) => {
+              const total = categories.map(i=>{
+                return user.refacts[i]?.total ?? 0
+              })
+              return { ...user, total };
+            })
+          )
+        );
     }
   }, [challenged, challenger]);
 
@@ -76,7 +99,44 @@ const Duel: React.FC = () => {
         </VStack>
       </VStack>
       <Divider orientation="vertical" />
-      {/* <Box>{console.log(duelData)}</Box> */}
+      <Box>
+        {duelData.length && <Chart
+          options={{
+            chart: {
+              height: 350,
+              type: 'radar',
+              dropShadow: {
+                enabled: true,
+                blur: 1,
+                left: 1,
+                top: 1,
+              },
+            }, plotOptions: {
+              radar: {
+                polygons: {
+                  strokeColor: '#e8e8e8',
+                  fill: {
+                      colors: ['#f8f8f8', '#fff']
+                  }
+                }
+              }
+            },
+            stroke: {
+              width: 2,
+            },
+            fill: {
+              opacity: 0.1,
+            },
+            yaxis:{show:false},
+            xaxis: {
+              categories: categories
+            },
+          }}
+          series={[{name:duelData[0]?.user,data:duelData[0]?.total ??[]},{name:duelData[1]?.user,data:duelData[1]?.total ?? []}]}
+          type="radar"
+          height={350}
+        />}
+      </Box>
     </HStack>
   );
 };
