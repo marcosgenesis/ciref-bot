@@ -43,7 +43,7 @@ const FirstAccess: React.FC<FirstAccessProps> = ({ setFirstAccess }) => {
           repoId: r.id,
           repoUrl: r.clone_url,
           repoName: r.name,
-          username: session?.user.username,
+          username: session?.user?.username,
         })
       )
     ).then((r) => {

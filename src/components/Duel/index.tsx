@@ -123,7 +123,7 @@ const Duel: React.FC = () => {
                 plotOptions: {
                   radar: {
                     polygons: {
-                      strokeColor: '#e8e8e8',
+                      strokeColors: ['#e8e8e8'],
                       fill: {
                         colors: ['#f8f8f8', '#fff'],
                       },
