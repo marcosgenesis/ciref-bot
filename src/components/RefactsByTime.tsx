@@ -22,7 +22,7 @@ const RefactsByTime: React.FC = () => {
   const { data, isFetching, refetch } = useQuery(
     ['refacts-by-time'],
     async () => {
-      const findRepoInfo = repos.find((r) => r.repoName === selectedRepo);
+      const findRepoInfo = repos.find((r) => r.repoUrl === selectedRepo);
       return backendApi
         .get('/refacts/time', {
           params: {
@@ -52,7 +52,7 @@ const RefactsByTime: React.FC = () => {
   }, [option, selectedRepo]);
 
   return (
-    <Flex w="1200px" bg="white" p="4" borderRadius="md" flexDirection="column">
+    <Flex w="100%" bg="white" p="4" borderRadius="md" flexDirection="column">
       <Box>
         <Text fontWeight="semibold">Refatorações</Text>
         <Text fontSize="smaller">
@@ -62,7 +62,7 @@ const RefactsByTime: React.FC = () => {
       <Chart
         options={{
           chart: {
-            width: 1200,
+            width: '100%',
             height: 300,
             type: 'area',
             zoom: {
@@ -78,12 +78,14 @@ const RefactsByTime: React.FC = () => {
             curve: 'stepline',
           },
           grid: {
-            row: {
-              opacity: 0,
+            xaxis:{
+              lines:{
+                show:true
+              }
             },
             yaxis: {
               lines: {
-                show: false,
+                show: true,
               },
             },
           },
@@ -92,7 +94,7 @@ const RefactsByTime: React.FC = () => {
             categories: data.dates,
           },
         }}
-        series={[{ name: 'Refatorações executadas', data: data.values }]}
+        series={[{ name: 'Refatorações executadas', data: data.values ?? [] }]}
         type="area"
         height={300}
       />

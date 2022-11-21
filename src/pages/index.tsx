@@ -8,7 +8,12 @@ import {
   Divider,
   Flex,
   HStack,
+  SimpleGrid,
   Spacer,
+  Spinner,
+  Tag,
+  TagLabel,
+  TagLeftIcon,
   Text,
   VStack,
 } from '@chakra-ui/react';
@@ -23,6 +28,11 @@ import TimeWindows from '@/components/TimeWindows';
 import { useTimeWindow } from '@/stores/timeWindow';
 import RefactsByTime from '@/components/RefactsByTime';
 import RefactsByType from '@/components/RefactsByType';
+import { RiListOrdered } from 'react-icons/ri';
+import RefactsOrderDrawer from '@/components/RefactsOrderDrawer';
+import RefactByAuthorsPoints from '@/components/RefactsByAuthorsPoints';
+import RefactsPaths from '@/components/RefactsPaths';
+import { useQueryClient } from '@tanstack/react-query';
 export async function getServerSideProps(context) {
   const session = await getSession(context);
 
@@ -45,6 +55,7 @@ export async function getServerSideProps(context) {
 const Home: React.FC = () => {
   const { data: session } = useSession();
   const [firstAccess, setFirstAccess] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [startDate, endDate] = useTimeWindow((state) => [
     state.startDate,
     state.endDate,
@@ -57,6 +68,7 @@ const Home: React.FC = () => {
       setRepos,
     })
   );
+  const queryClient = useQueryClient()
   const [refactsTypes, setRefactsTypes] = useState(false);
 
   useEffect(() => {
@@ -74,30 +86,35 @@ const Home: React.FC = () => {
       })
       .then((response) => {
         setRepos(response.data);
-        if (!selectedRepo) setSelectedRepo(response.data[0]?.repoName);
+        if (!selectedRepo) setSelectedRepo(response.data[0]?.repoUrl);
       });
   }, []);
 
   useEffect(() => {
-    backendApi
-      .get(`/info/`, { params: { url: selectedRepo } })
-      .then((a) => setRefactsTypes(a.data));
+    if (selectedRepo !== '') {
+      setLoading(true);
+      backendApi
+        .post('/refact', {
+          username: session?.user.username,
+          url: selectedRepo,
+          branch: 'master',
+        })
+        .then((e) => {
+          setLoading(false);
+          queryClient.invalidateQueries()
+        });
+      backendApi
+        .get(`/info/`, { params: { url: selectedRepo } })
+        .then((a) => setRefactsTypes(a.data));
+    }
   }, [selectedRepo]);
 
   return (
-    <Box
-      margin={0}
-      padding={0}
-      boxSizing="border-box"
-      width="100%"
-      height="100vh"
-      display="flex"
-    >
+    <Box margin={0} padding={0} boxSizing="border-box" display="flex">
       <Box
         bg="white"
-        width="300px"
+        width="30vw"
         maxWidth="300px"
-        height="100vh"
         display="flex"
         flexDirection="column"
         alignItems="center"
@@ -132,25 +149,41 @@ const Home: React.FC = () => {
             </Flex>
           </Flex>
           {repos.map((item) => (
-            <RepoItem repoName={item.repoName} />
+            <RepoItem repoName={item.repoName} repoUrl={item.repoUrl} />
           ))}
         </VStack>
         <Spacer />
         <Profile />
       </Box>
-      <Flex p="8">
+      <Flex p="8" w="100%">
         {repos.length ? (
-          <VStack spacing={4} w="100%">
-            <TimeWindows />
-            <HStack spacing={4} w="100%" align={'stretch'}>
-              <RefactByAuthors />
+          <Flex flexDir="column" gap={4} w="100%">
+            <Flex w="100%">
+              <TimeWindows />
+              <Spacer></Spacer>
+              {loading && (
+                <Tag size="lg" variant="subtle">
+                  <TagLeftIcon boxSize="12px" as={Spinner} />
+                  <TagLabel>Sincronizando</TagLabel>
+                </Tag>
+              )}
+              <RefactsOrderDrawer />
+            </Flex>
+            <Flex gap={4} w="100%" flex={1}>
               <RefactsByTime />
-            </HStack>
+            </Flex>
             <Flex gap={4} w="100%">
+              <RefactByAuthors />
               <RefactsByType />
+              <RefactByAuthorsPoints />
+            </Flex>
+            <Flex gap={4} w="100%">
+              <RefactsPaths />
+            </Flex>
+            <Flex gap={4} w="100%">
               <Duel />
             </Flex>
-          </VStack>
+          </Flex>
         ) : (
           <FirstAccess setFirstAccess={setFirstAccess} />
         )}

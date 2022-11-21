@@ -2,6 +2,7 @@ import { apiGithub, backendApi } from '@/services/api';
 import { Button, Flex, HStack, Spacer, Text, useToast } from '@chakra-ui/react';
 import { colors } from '@twooni-ui/tokens';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { RiCheckLine } from 'react-icons/ri';
 
@@ -9,8 +10,9 @@ interface FirstAccessProps {
   setFirstAccess: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const FirstAccess: React.FC<FirstAccessProps> = ({setFirstAccess}) => {
+const FirstAccess: React.FC<FirstAccessProps> = ({ setFirstAccess }) => {
   const toast = useToast();
+  const router = useRouter();
   const { data: session } = useSession();
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -44,9 +46,12 @@ const FirstAccess: React.FC<FirstAccessProps> = ({setFirstAccess}) => {
           username: session?.user.username,
         })
       )
-    ).then((r) => toast({ title: 'Repositórios adicionados com sucesso' }));
+    ).then((r) => {
+      router.push('/');
+      toast({ title: 'Repositórios adicionados com sucesso' });
+    });
     setLoading(false);
-    setFirstAccess(true)
+    setFirstAccess(true);
   }
 
   useEffect(() => {

@@ -52,7 +52,7 @@ const TimeWindows: React.FC = () => {
     }
   }
   return (
-    <Flex w="100%">
+    <Flex>
       <ButtonGroup colorScheme="gray" size="md" isAttached variant="outline">
         <Button
           isActive={option === 'allProject'}

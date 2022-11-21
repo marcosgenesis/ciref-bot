@@ -36,7 +36,7 @@ const RefactsByType: React.FC = () => {
   const { data, isFetching, refetch } = useQuery(
     ['refacts-by-type'],
     async () => {
-      const findRepoInfo = repos.find((r) => r.repoName === selectedRepo);
+      const findRepoInfo = repos.find((r) => r.repoUrl === selectedRepo);
       return backendApi
         .get('/info', {
           params: {
@@ -60,7 +60,7 @@ const RefactsByType: React.FC = () => {
     setSelectedIndex(index);
   }
   return (
-    <Box p="4" bg="white" borderRadius="md" w="800px">
+    <Box p="4" bg="white" borderRadius="md" w="100%">
       <Flex w="100%" align={'center'}>
         <Box>
           <Text fontWeight="semibold">Refatorações</Text>

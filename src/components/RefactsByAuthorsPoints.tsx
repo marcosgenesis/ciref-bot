@@ -18,38 +18,55 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useTimeWindow } from '@/stores/timeWindow';
 
 // import { Container } from './styles';
 
-const RefactByAuthors: React.FC = () => {
+const RefactByAuthorsPoints: React.FC = () => {
   const { repos, selectedRepo } = useSelectRepo(({ repos, selectedRepo }) => ({
     repos,
     selectedRepo,
   }));
-  const { data } = useQuery(['refacts-by-authors-points'], async () => {
-    const findRepoInfo = repos.find((r) => r.repoName === selectedRepo);
-    return backendApi
-      .get('/refactPoints', {
-        params: {
-          repoUrl: findRepoInfo.repoUrl,
-        },
-      })
-      .then((res) => res.data);
-  });
+  const [startDate, endDate,option] = useTimeWindow((state) => [
+    state.startDate,
+    state.endDate,
+    state.option
+  ]);
+  const { data, isFetching,refetch } = useQuery(
+    ['refacts-by-authors-points'],
+    async () => {
+      const findRepoInfo = repos.find((r) => r.repoUrl === selectedRepo);
+      
+      return backendApi
+        .get('/refacts/points/users', {
+          params: {
+            repoUrl: findRepoInfo.repoUrl,
+            startDate,endDate
+          },
+        })
+        .then((res) => res.data);
+    },
+    { initialData:[] }
+  );
+
+  useEffect(()=>{refetch()},[option,selectedRepo])
+  
   return (
-    <Flex w="100%" h="auto">
-      <Box bg="white" borderRadius="md" p="4">
+    <Flex w="20%" h="auto">
+      <Box w="100%" bg="white" borderRadius="md" p="4">
         <Text fontWeight="semibold">Refatorações</Text>
-        <Text fontSize="smaller">Refatorações em números absolutos</Text>
-        {data.length && <Flex p="4" flexDir="column" align={'center'}>
-          <Avatar src={data[0]?.user.avatar} size="xl" />
-          <Text fontWeight="medium">{data[0]?.user.login}</Text>
-          <Badge variant="subtle" colorScheme="green">
-            {`${data[0]?.total} Refatorações`}
-          </Badge>
-        </Flex>}
-        {data.length > 2 && (
+        <Text fontSize="smaller">Refatorações por pontos</Text>
+        {data?.length && (
+          <Flex p="4" flexDir="column" align={'center'}>
+            <Avatar src={data[0]?.user.avatar} size="xl" />
+            <Text fontWeight="medium">{data[0]?.user.login}</Text>
+            <Badge variant="subtle" colorScheme="green">
+              {`${data[0]?.total} pontos`}
+            </Badge>
+          </Flex>
+        )}
+        {data?.length > 2 && (
           <>
             <Divider />
             <VStack p="2" spacing="4">
@@ -74,4 +91,4 @@ const RefactByAuthors: React.FC = () => {
   );
 };
 
-export default RefactByAuthors;
+export default RefactByAuthorsPoints;

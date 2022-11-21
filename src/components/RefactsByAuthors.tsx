@@ -39,7 +39,8 @@ const RefactByAuthors: React.FC = () => {
   const { data, isFetching,refetch } = useQuery(
     ['refacts-by-authors'],
     async () => {
-      const findRepoInfo = repos.find((r) => r.repoName === selectedRepo);
+      const findRepoInfo = repos.find((r) => r.repoUrl === selectedRepo);
+      
       return backendApi
         .get('/refacts/users', {
           params: {
@@ -55,8 +56,8 @@ const RefactByAuthors: React.FC = () => {
   useEffect(()=>{refetch()},[option,selectedRepo])
 
   return (
-    <Flex>
-      <Box bg="white" borderRadius="md" p="4">
+    <Flex w="20%">
+      <Box w="100%"bg="white" borderRadius="md" p="4">
         {isFetching && <Spinner/>}
         {!isFetching && (
           <>

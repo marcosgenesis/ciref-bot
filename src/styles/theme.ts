@@ -6,7 +6,6 @@ export const theme = extendTheme({
       'html, body': {
         backgroundColor: colors.gray100,
         fontFamily: "'Outfit', sans-serif"
-
       },
     },
   },

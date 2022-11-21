@@ -5,16 +5,17 @@ import { RiGitRepositoryLine } from 'react-icons/ri';
 
 interface RepoItem {
   repoName: string;
+  repoUrl: string;
 }
 
-const RepoItem: React.FC<RepoItem> = ({ repoName }) => {
+const RepoItem: React.FC<RepoItem> = ({ repoName,repoUrl }) => {
   const { selectedRepo, setSelectedRepo } = useSelectRepo(
     ({ selectedRepo, setSelectedRepo }) => ({
       selectedRepo,
       setSelectedRepo,
     })
   );
-  const active = repoName === selectedRepo;
+  const active = repoUrl === selectedRepo;
 
   return (
     <Flex
@@ -24,7 +25,7 @@ const RepoItem: React.FC<RepoItem> = ({ repoName }) => {
       align="center"
       justify="center"
       cursor="pointer"
-      onClick={() => setSelectedRepo(repoName)}
+      onClick={() => setSelectedRepo(repoUrl)}
       bgGradient={
         active ? 'linear(to-r, primary.50, transparent)' : 'transparent'
       }

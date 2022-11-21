@@ -10,6 +10,7 @@ import {
   HStack,
   Icon,
   Select,
+  Spacer,
   Text,
   VStack,
 } from '@chakra-ui/react';
@@ -20,7 +21,7 @@ import { RiUser2Line, RiUserLine } from 'react-icons/ri';
 import DuelPersonItem from './DuelPersonItem';
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-const categories= [
+export const categories = [
   'add',
   'remove',
   'move',
@@ -33,7 +34,7 @@ const categories= [
   'modify',
   'inline',
   'others',
-]
+];
 const Duel: React.FC = () => {
   const [duelData, setDuelData] = useState([]);
   const { challenged, challenger } = useDuelStore(
@@ -48,10 +49,10 @@ const Duel: React.FC = () => {
     repos,
   }));
 
-  const { data } = useQuery(
+  const { data, refetch } = useQuery(
     ['repo-people'],
     async () => {
-      const findRepoInfo = repos.find((r) => r.repoName === selectedRepo);
+      const findRepoInfo = repos.find((r) => r.repoUrl === selectedRepo);
 
       return backendApi
         .get(`/repo/people/${findRepoInfo.repoId}`)
@@ -62,7 +63,7 @@ const Duel: React.FC = () => {
 
   useEffect(() => {
     if (challenger && challenged) {
-      const findRepoInfo = repos.find((r) => r.repoName === selectedRepo);
+      const findRepoInfo = repos.find((r) => r.repoUrl === selectedRepo);
       backendApi
         .post('/duel', {
           repoUrl: findRepoInfo.repoUrl,
@@ -74,18 +75,22 @@ const Duel: React.FC = () => {
         .then((response) =>
           setDuelData(
             response.data.map((user) => {
-              const total = categories.map(i=>{
-                return user.refacts[i]?.total ?? 0
-              })
+              const total = categories.map((i) => {
+                return user.refacts[i]?.total ?? 0;
+              });
               return { ...user, total };
             })
           )
         );
     }
   }, [challenged, challenger]);
+  
+  useEffect(() => {
+    refetch();
+  }, [selectedRepo]);
 
   return (
-    <HStack bg="white" p="4" spacing="4" borderRadius="md">
+    <Flex bg="white" p="4" borderRadius="md">
       <VStack>
         <Box>
           <Text fontWeight="semibold">Duelo de desenvolvedores</Text>
@@ -98,46 +103,55 @@ const Duel: React.FC = () => {
           {data.length && data.map((i) => <DuelPersonItem login={i.login} />)}
         </VStack>
       </VStack>
-      <Divider orientation="vertical" />
+      <Spacer />
       <Box>
-        {duelData.length && <Chart
-          options={{
-            chart: {
-              height: 350,
-              type: 'radar',
-              dropShadow: {
-                enabled: true,
-                blur: 1,
-                left: 1,
-                top: 1,
-              },
-            }, plotOptions: {
-              radar: {
-                polygons: {
-                  strokeColor: '#e8e8e8',
-                  fill: {
-                      colors: ['#f8f8f8', '#fff']
-                  }
-                }
-              }
-            },
-            stroke: {
-              width: 2,
-            },
-            fill: {
-              opacity: 0.1,
-            },
-            yaxis:{show:false},
-            xaxis: {
-              categories: categories
-            },
-          }}
-          series={[{name:duelData[0]?.user,data:duelData[0]?.total ??[]},{name:duelData[1]?.user,data:duelData[1]?.total ?? []}]}
-          type="radar"
-          height={350}
-        />}
+        {!!duelData.length && (
+          <Flex width="100%">
+            <Divider orientation="vertical" />
+            <Chart
+              options={{
+                chart: {
+                  height: 350,
+                  type: 'radar',
+                  dropShadow: {
+                    enabled: true,
+                    blur: 1,
+                    left: 1,
+                    top: 1,
+                  },
+                },
+                plotOptions: {
+                  radar: {
+                    polygons: {
+                      strokeColor: '#e8e8e8',
+                      fill: {
+                        colors: ['#f8f8f8', '#fff'],
+                      },
+                    },
+                  },
+                },
+                stroke: {
+                  width: 2,
+                },
+                fill: {
+                  opacity: 0.1,
+                },
+                yaxis: { show: false },
+                xaxis: {
+                  categories: categories,
+                },
+              }}
+              series={[
+                { name: duelData[0]?.user, data: duelData[0]?.total ?? [] },
+                { name: duelData[1]?.user, data: duelData[1]?.total ?? [] },
+              ]}
+              type="radar"
+              height={350}
+            />
+          </Flex>
+        )}
       </Box>
-    </HStack>
+    </Flex>
   );
 };
 
