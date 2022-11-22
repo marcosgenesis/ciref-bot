@@ -3,10 +3,9 @@ import { SessionProvider } from 'next-auth/react';
 import './reset.css';
 import { ChakraProvider } from '@chakra-ui/react';
 import { theme } from '@/styles/theme';
-import {
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
 const queryClient = new QueryClient();
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
@@ -17,6 +16,7 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
           <Component {...pageProps} />
         </SessionProvider>
       </ChakraProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

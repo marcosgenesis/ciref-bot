@@ -1,5 +1,6 @@
 import { apiGithub, backendApi } from '@/services/api';
 import { Button, Flex, HStack, Spacer, Text, useToast } from '@chakra-ui/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { colors } from '@twooni-ui/tokens';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
@@ -17,7 +18,7 @@ const FirstAccess: React.FC<FirstAccessProps> = ({ setFirstAccess }) => {
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedRepos, setSelectedRepos] = useState([]);
-
+  const queryClient = useQueryClient()
   function isSelected(repo: any) {
     const a = !!selectedRepos.find((r) => r.id === repo.id);
     return a;
@@ -47,8 +48,9 @@ const FirstAccess: React.FC<FirstAccessProps> = ({ setFirstAccess }) => {
         })
       )
     ).then((r) => {
-      router.push('/');
       toast({ title: 'Repositórios adicionados com sucesso' });
+      queryClient.invalidateQueries()
+      router.reload();
     });
     setLoading(false);
     setFirstAccess(true);

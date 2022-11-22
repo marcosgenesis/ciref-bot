@@ -32,7 +32,7 @@ import { RiListOrdered } from 'react-icons/ri';
 import RefactsOrderDrawer from '@/components/RefactsOrderDrawer';
 import RefactByAuthorsPoints from '@/components/RefactsByAuthorsPoints';
 import RefactsPaths from '@/components/RefactsPaths';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 export async function getServerSideProps(context) {
   const session = await getSession(context);
 
@@ -68,7 +68,7 @@ const Home: React.FC = () => {
       setRepos,
     })
   );
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const [refactsTypes, setRefactsTypes] = useState(false);
 
   useEffect(() => {
@@ -79,16 +79,23 @@ const Home: React.FC = () => {
     }
   }, []);
 
+  const { data: alreadyRepos, refetch } = useQuery(
+    ['alreadyRepos'],
+    async () => {
+      return backendApi
+        .get(`/repo/${session?.user.username}`, {
+          params: { startDate, endDate },
+        })
+        .then((response) => {
+          if (!selectedRepo) setSelectedRepo(response.data[0]?.repoUrl);
+          return response.data;
+        });
+    },
+    { initialData: [] }
+  );
   useEffect(() => {
-    backendApi
-      .get(`/repo/${session?.user.username}`, {
-        params: { startDate, endDate },
-      })
-      .then((response) => {
-        setRepos(response.data);
-        if (!selectedRepo) setSelectedRepo(response.data[0]?.repoUrl);
-      });
-  }, []);
+    setRepos(alreadyRepos);
+  }, [alreadyRepos]);
 
   useEffect(() => {
     if (selectedRepo !== '') {
@@ -101,7 +108,7 @@ const Home: React.FC = () => {
         })
         .then((e) => {
           setLoading(false);
-          queryClient.invalidateQueries()
+          queryClient.invalidateQueries();
         });
       backendApi
         .get(`/info/`, { params: { url: selectedRepo } })

@@ -27,6 +27,7 @@
     "@next-auth/prisma-adapter": "^1.0.5",
     "@prisma/client": "^4.4.0",
     "@tanstack/react-query": "^4.14.5",
+    "@tanstack/react-query-devtools": "^4.16.1",
     "@twooni-ui/tokens": "^1.1.0",
     "apexcharts": "^3.36.0",
     "apexcharts-react": "^1.0.0",

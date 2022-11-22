@@ -25,7 +25,7 @@ import {
   useDisclosure,
   VStack,
 } from '@chakra-ui/react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useRef, useState } from 'react';
 import { RiListOrdered } from 'react-icons/ri';
 
@@ -44,16 +44,41 @@ const RefactsOrderDrawer: React.FC = () => {
     ml: '-2.5',
     fontSize: 'smaller',
   };
+  const { data, isLoading } = useQuery(
+    ['repo-weights'],
+    async () => {
+      return (
+        await backendApi.get('/weights', { params: { repoUrl: selectedRepo } })
+      ).data;
+    },
+    { initialData: {} }
+  );
   const queryClient = useQueryClient();
 
   async function handleCreateWeights() {
     try {
       setLoading(true);
-      const weightsFormatted = weights.reduce(
-        (a, v) => ({ ...a, [v.key.toLowerCase()]: v.value }),
-        {}
-      );
+      const weightsFormatted = [
+        'add',
+        'change',
+        'extract',
+        'inline',
+        'merge',
+        'modify',
+        'move',
+        'remove',
+        'rename',
+        'replace',
+        'split',
+      ].reduce((acc, item) => {
+        const findNewWeight = weights.find((e) => e.key.toLowerCase() === item);
 
+        if (findNewWeight) return { ...acc, [item]: findNewWeight.value };
+        return {
+          ...acc,
+          [item.toLowerCase()]: data ? data[item.toLowerCase()] : 1,
+        };
+      }, {});
 
       await backendApi.post('/weights', {
         repoUrl: selectedRepo,
@@ -61,6 +86,7 @@ const RefactsOrderDrawer: React.FC = () => {
       });
       setLoading(false);
       queryClient.invalidateQueries(['refacts-by-authors-points']);
+      queryClient.invalidateQueries(['repo-weights']);
       reset();
       onClose();
     } catch (error) {
@@ -74,8 +100,7 @@ const RefactsOrderDrawer: React.FC = () => {
         ref={btnRef}
         onClick={() => {
           onOpen();
-          reset(); 
-          
+          reset();
         }}
         leftIcon={<RiListOrdered />}
         colorScheme="primary"
@@ -121,7 +146,6 @@ const RefactsOrderDrawer: React.FC = () => {
                 'Rename',
                 'Add',
                 'Remove',
-                'Others',
               ].map((i) => (
                 <SimpleGrid
                   as={Flex}
@@ -133,7 +157,7 @@ const RefactsOrderDrawer: React.FC = () => {
                   <Text>{i}</Text>
                   <Slider
                     onChangeEnd={(v) => setWeights({ key: i, value: v })}
-                    defaultValue={1}
+                    defaultValue={data[i.toLowerCase()]}
                     min={1}
                     max={5}
                     step={1}

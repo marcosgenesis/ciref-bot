@@ -20,6 +20,7 @@ import {
   useToast,
   VStack,
 } from '@chakra-ui/react';
+import { useQuery } from '@tanstack/react-query';
 import { signOut, useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react';
 import {
@@ -34,23 +35,31 @@ import FirstAccess from '../FirstAccess';
 const Profile: React.FC = () => {
   const toast = useToast();
   const { data: session } = useSession();
-  const [repos, setRepos] = useState([]);
+  // const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedRepos, setSelectedRepos] = useState([]);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const alreadyRepos = useSelectRepo((state) => state.repos);
 
-  useEffect(() => {
-    apiGithub.get(`/users/${session?.user.username}/repos`).then((a) => {
-      const b = a.data.filter((i) => i.language === 'Java');
-      setRepos(
-        b.filter((a) => {
-          return alreadyRepos.find((e) => e.repoId === a.id);
-        })
-      );
-    });
-  }, []);
+  const { data: repos, refetch } = useQuery(
+    ['original-repos'],
+    async () => {
+      return apiGithub
+        .get(`/users/${session?.user.username}/repos`)
+        .then((a) => {
+          const b = a.data.filter((i) => i.language === 'Java');
+          const res = b.filter((a) => {
+            return !alreadyRepos.find((e) => Number(e.repoId) === a.id);
+          });
 
+          return res;
+        });
+    },
+    { initialData: [] }
+  );
+  useEffect(() => {
+    refetch();
+  }, [alreadyRepos]);
   function isSelected(repo: any) {
     const a = !!selectedRepos.find((r) => r.id === repo.id);
     return a;
@@ -81,6 +90,7 @@ const Profile: React.FC = () => {
       )
     ).then((r) => toast({ title: 'Repositórios adicionados com sucesso' }));
     setLoading(false);
+    onClose();
   }
 
   return (
