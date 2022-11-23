@@ -5,5 +5,5 @@ export const apiGithub = axios.create({
 });
 
 export const backendApi = axios.create({
-  baseURL: process.env.BACKEND_API,
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_API,
 });
